@@ -378,17 +378,6 @@
         const sonidoCorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/217/217-preview.mp3");
         const sonidoIncorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3");
         const sonidoGameOver = new Audio("https://assets.mixkit.co/active_storage/sfx/1944/1944-preview.mp3");
-        const musicaTrivia = new Audio("https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Steve_Combs/Notes/Steve_Combs_-_09_-_Arcade_Controller.mp3");
-        const musicaMinijuego = new Audio("https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/ZiAEw3qA5bZx2P8eYV9gWBuMjTLv9bTXuKIKs8p0.mp3");
-
-        // Configurar volúmenes y bucle
-        musicaTrivia.loop = true;
-        musicaMinijuego.loop = true;
-        musicaTrivia.volume = 0.3;      // 30% para la trivia
-        musicaMinijuego.volume = 0.3;   // 30% para el minijuego
-        sonidoCorrecto.volume = 0.7;    // 70% para efectos
-        sonidoIncorrecto.volume = 0.7;  // 70% para efectos
-        sonidoGameOver.volume = 0.7;    // 70% para efectos
 
         let preguntaActual = null;
         let preguntasUsadas = [];
@@ -461,18 +450,9 @@
 
         botonInicio.addEventListener("click", () => {
             if (!audioDesbloqueado) {
-                // Desbloquear todos los audios con la primera interacción
-                sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(error => console.log("Error desbloqueando sonidoCorrecto:", error));
-                sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(error => console.log("Error desbloqueando sonidoIncorrecto:", error));
-                sonidoGameOver.play().then(() => sonidoGameOver.pause()).catch(error => console.log("Error desbloqueando sonidoGameOver:", error));
-                musicaTrivia.play().then(() => {
-                    musicaTrivia.pause();
-                    console.log("Música de trivia desbloqueada");
-                }).catch(error => console.log("Error desbloqueando musicaTrivia:", error));
-                musicaMinijuego.play().then(() => {
-                    musicaMinijuego.pause();
-                    console.log("Música de minijuego desbloqueada");
-                }).catch(error => console.log("Error desbloqueando musicaMinijuego:", error));
+                sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(() => {});
+                sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(() => {});
+                sonidoGameOver.play().then(() => sonidoGameOver.pause()).catch(() => {});
                 audioDesbloqueado = true;
             }
             botonInicio.style.display = "none";
@@ -487,8 +467,6 @@
             actualizarPuntos();
             actualizarVidas();
             mostrarMejorPuntaje();
-            musicaTrivia.currentTime = 0; // Reiniciar música
-            musicaTrivia.play().then(() => console.log("Reproduciendo música de trivia")).catch(error => console.log("Error reproduciendo musicaTrivia:", error));
             mostrarPreguntaInicial();
         });
 
@@ -586,12 +564,12 @@
                 puntos += 10;
                 actualizarPuntos();
                 sonidoCorrecto.currentTime = 0;
-                sonidoCorrecto.play().catch(error => console.log("Error reproduciendo sonidoCorrecto:", error));
+                sonidoCorrecto.play().catch(error => console.log("Error al reproducir sonido correcto:", error));
                 setTimeout(mostrarPregunta, 2000);
             } else {
                 resultado.innerHTML = `<span class="incorrecto">INCORRECTO<br>RESPUESTA: ${preguntaActual.correcta}</span>`;
                 sonidoIncorrecto.currentTime = 0;
-                sonidoIncorrecto.play().catch(error => console.log("Error reproduciendo sonidoIncorrecto:", error));
+                sonidoIncorrecto.play().catch(error => console.log("Error al reproducir sonido incorrecto:", error));
                 setTimeout(mostrarPantallaInicioMinijuego, 2000);
             }
         }
@@ -610,8 +588,6 @@
 
         function mostrarPantallaInicioMinijuego() {
             contenedorJuego.style.display = "none";
-            musicaTrivia.pause();
-            console.log("Pausando música de trivia antes del minijuego");
             startGameScreen.style.display = "flex";
             setTimeout(() => {
                 startGameScreen.style.display = "none";
@@ -639,8 +615,6 @@
             gameCanvas.addEventListener("touchmove", moverToque);
             gameCanvas.addEventListener("touchend", finalizarToque);
             intervaloJuego = setInterval(actualizarJuego, 1000 / 60);
-            musicaMinijuego.currentTime = 0;
-            musicaMinijuego.play().then(() => console.log("Reproduciendo música de minijuego")).catch(error => console.log("Error reproduciendo musicaMinijuego:", error));
 
             setTimeout(() => {
                 inicioDisparos = true;
@@ -693,6 +667,7 @@
             enemigos.forEach(enemigo => {
                 enemigo.x += enemigo.velocidad * enemigo.direccion;
                 if (enemigo.x > 360 || enemigo.x < 0) enemigo.direccion *= -1;
+                // Dibujar el SVG si está cargado, sino usar emoji como fallback
                 if (enemigoImgCargada) {
                     ctx.drawImage(enemigoImg, enemigo.x - 20, enemigo.y - 20, 40, 40);
                 } else {
@@ -737,10 +712,6 @@
             gameCanvas.removeEventListener("touchmove", moverToque);
             gameCanvas.removeEventListener("touchend", finalizarToque);
             minijuego.style.display = "none";
-            musicaMinijuego.pause();
-            console.log("Pausando música de minijuego tras victoria");
-            musicaTrivia.currentTime = 0;
-            musicaTrivia.play().then(() => console.log("Reproduciendo música de trivia tras victoria")).catch(error => console.log("Error reproduciendo musicaTrivia tras victoria:", error));
             victoryScreen.style.display = "flex";
             setTimeout(() => {
                 victoryScreen.style.display = "none";
@@ -756,11 +727,9 @@
             gameCanvas.removeEventListener("touchmove", moverToque);
             gameCanvas.removeEventListener("touchend", finalizarToque);
             minijuego.style.display = "none";
-            musicaMinijuego.pause();
-            console.log("Pausando música de minijuego tras derrota");
             gameOverScreen.style.display = "flex";
             sonidoGameOver.currentTime = 0;
-            sonidoGameOver.play().catch(error => console.log("Error reproduciendo sonidoGameOver:", error));
+            sonidoGameOver.play().catch(error => console.log("Error al reproducir sonido Game Over:", error));
             guardarPuntaje();
             mostrarMejorPuntaje();
             setTimeout(() => {
