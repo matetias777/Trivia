@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia de Cultura General</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+        #contenedor-juego {
+            display: none; /* Oculto al inicio */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        #imagen {
+            font-size: 40px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        #pregunta {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .opcion {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .opcion:hover {
+            background-color: #0056b3;
+        }
+        #resultado {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .correcto {
+            color: green;
+        }
+        .incorrecto {
+            color: red;
+        }
+        #inicio {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #inicio:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <button id="inicio">¡Comenzar Trivia!</button>
+    <div id="contenedor-juego">
+        <div id="imagen"></div>
+        <div id="pregunta"></div>
+        <div id="opciones"></div>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        const preguntas = [
+            { pregunta: "¿Cuál es la capital de Brasil?", opciones: ["Río de Janeiro", "Brasilia", "São Paulo"], correcta: "Brasilia", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿En qué año llegó el hombre a la Luna?", opciones: ["1969", "1975", "1965"], correcta: "1969", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué planeta es el más grande del sistema solar?", opciones: ["Tierra", "Júpiter", "Saturno"], correcta: "Júpiter", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?", opciones: ["Miguel de Cervantes", "Jorge Luis Borges", "Lope de Vega"], correcta: "Miguel de Cervantes", genero: "literatura", imagen: "📖" },
+            { pregunta: "¿Cuál es el río más largo del mundo?", opciones: ["Amazonas", "Nilo", "Misisipi"], correcta: "Amazonas", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿En qué continente está Egipto?", opciones: ["Asia", "África", "Europa"], correcta: "África", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Qué elemento químico tiene el símbolo 'O'?", opciones: ["Oro", "Oxígeno", "Osmio"], correcta: "Oxígeno", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿En qué año comenzó la Segunda Guerra Mundial?", opciones: ["1939", "1945", "1914"], correcta: "1939", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Cuál es el océano más grande del mundo?", opciones: ["Atlántico", "Índico", "Pacífico"], correcta: "Pacífico", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Quién pintó la 'Mona Lisa'?", opciones: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso"], correcta: "Leonardo da Vinci", genero: "arte", imagen: "🎨" },
+            { pregunta: "¿Qué país tiene más habitantes en el mundo?", opciones: ["India", "China", "Estados Unidos"], correcta: "China", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Cuál es el metal más abundante en la corteza terrestre?", opciones: ["Hierro", "Aluminio", "Cobre"], correcta: "Aluminio", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿En qué año se descubrió América?", opciones: ["1492", "1453", "1519"], correcta: "1492", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué instrumento mide la presión atmosférica?", opciones: ["Termómetro", "Barómetro", "Higrómetro"], correcta: "Barómetro", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿Cuál es la capital de Japón?", opciones: ["Osaka", "Tokio", "Hiroshima"], correcta: "Tokio", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Quién desarrolló la teoría de la relatividad?", opciones: ["Isaac Newton", "Albert Einstein", "Galileo Galilei"], correcta: "Albert Einstein", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿Qué animal es el mamífero más grande del mundo?", opciones: ["Elefante", "Ballena azul", "Oso polar"], correcta: "Ballena azul", genero: "biologia", imagen: "🐢" },
+            { pregunta: "¿En qué siglo nació William Shakespeare?", opciones: ["Siglo XV", "Siglo XVI", "Siglo XVII"], correcta: "Siglo XVI", genero: "literatura", imagen: "📖" }
+        ];
+
+        // Cargar sonidos
+        const sonidoCorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/217/217-preview.mp3"); // Retro Achievement
+        const sonidoIncorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3"); // Arcade Retro Game Over
+
+        let preguntaActual = null;
+        let preguntasUsadas = [];
+
+        // Botón de inicio
+        const botonInicio = document.getElementById("inicio");
+        const contenedorJuego = document.getElementById("contenedor-juego");
+
+        botonInicio.addEventListener("click", () => {
+            // Desbloquear audio
+            sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(() => {});
+            sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(() => {});
+            // Ocultar botón y mostrar juego
+            botonInicio.style.display = "none";
+            contenedorJuego.style.display = "flex"; // Cambiado a flex para centrar
+            mostrarPregunta();
+        });
+
+        function mostrarPregunta() {
+            if (preguntasUsadas.length === preguntas.length) {
+                preguntasUsadas = [];
+            }
+
+            const preguntasDisponibles = preguntas.filter(p => !preguntasUsadas.includes(p));
+            
+            let nuevaPregunta;
+            do {
+                nuevaPregunta = preguntasDisponibles[Math.floor(Math.random() * preguntasDisponibles.length)];
+            } while (nuevaPregunta === preguntaActual && preguntasDisponibles.length > 1);
+
+            preguntaActual = nuevaPregunta;
+            preguntasUsadas.push(preguntaActual);
+
+            document.getElementById("imagen").innerText = preguntaActual.imagen;
+            document.getElementById("pregunta").innerText = preguntaActual.pregunta;
+            const opcionesDiv = document.getElementById("opciones");
+            opcionesDiv.innerHTML = "";
+            preguntaActual.opciones.forEach(opcion => {
+                const boton = document.createElement("button");
+                boton.innerText = opcion;
+                boton.className = "opcion";
+                boton.onclick = () => verificarRespuesta(opcion);
+                opcionesDiv.appendChild(boton);
+            });
+            document.getElementById("resultado").innerHTML = "";
+        }
+
+        function verificarRespuesta(respuesta) {
+            const resultado = document.getElementById("resultado");
+            if (respuesta === preguntaActual.correcta) {
+                resultado.innerHTML = '<span class="correcto">¡Correcto! 🎉</span>';
+                sonidoCorrecto.currentTime = 0;
+                sonidoCorrecto.play().catch(error => console.log("Error al reproducir sonido correcto:", error));
+            } else {
+                resultado.innerHTML = `<span class="incorrecto">Incorrecto. La respuesta correcta es ${preguntaActual.correcta}.</span>`;
+                sonidoIncorrecto.currentTime = 0;
+                sonidoIncorrecto.play().catch(error => console.log("Error al reproducir sonido incorrecto:", error));
+            }
+            setTimeout(mostrarPregunta, 2000);
+        }
+    </script>
+</body>
+</html>
