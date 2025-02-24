@@ -4,22 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trivia de Cultura General</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Press Start 2P', cursive;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #f5f5f5;
             margin: 0;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png'), linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            background-size: cover;
+            background-position: center;
+            color: white;
+            overflow: hidden;
+            user-select: none;
         }
         #contenedor-juego {
-            display: none; /* Oculto al inicio */
+            display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
+            max-width: 400px;
+            position: relative;
         }
         #imagen {
             font-size: 40px;
@@ -27,56 +35,217 @@
             text-align: center;
         }
         #pregunta {
-            font-size: 24px;
+            font-size: 20px;
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 1.5;
+        }
+        #opciones {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
         }
         .opcion {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 5px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            padding: 12px 25px;
+            font-size: 14px;
+            font-family: 'Press Start 2P', cursive;
+            width: 80%;
+            max-width: 300px;
+            background: linear-gradient(135deg, #1e90ff, #00b7eb);
+            color: #fff;
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
             cursor: pointer;
-        }
-        .opcion:hover {
-            background-color: #0056b3;
-        }
-        #resultado {
-            font-size: 18px;
-            margin-top: 20px;
+            box-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
             text-align: center;
         }
+        .opcion:hover:not(:disabled) {
+            background: linear-gradient(135deg, #00b7eb, #1e90ff);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+            transform: scale(1.05);
+        }
+        .opcion:disabled {
+            background: linear-gradient(135deg, #666, #888);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        #resultado {
+            font-size: 16px;
+            margin-top: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 1.5;
+        }
+        #puntos {
+            font-size: 14px;
+            position: absolute;
+            top: -45px;
+            left: 10px;
+            padding: 5px 10px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #0f0c29;
+            border: 2px solid #ffff00;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.7);
+            text-shadow: none;
+            z-index: 10;
+        }
         .correcto {
-            color: green;
+            color: #00ff00;
+            animation: parpadeo 0.5s infinite;
         }
         .incorrecto {
-            color: red;
+            color: #ff3333;
+            animation: parpadeo 0.5s infinite;
         }
         #inicio {
-            padding: 15px 30px;
-            font-size: 20px;
-            background-color: #28a745;
-            color: white;
+            font-size: 24px;
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            background: none;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
+            position: relative;
+            transition: transform 0.3s ease;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+        #inicio::before {
+            content: '⭐';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: #ffff00;
+            animation: estrella 1.5s infinite ease-in-out;
+            z-index: -1;
         }
         #inicio:hover {
-            background-color: #218838;
+            transform: scale(1.1);
+        }
+        #minijuego {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png'), linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            background-size: cover;
+            background-position: center;
+        }
+        #gameCanvas {
+            border: 1px solid #00d4ff;
+            touch-action: none;
+        }
+        #gameMessage {
+            font-size: 20px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            position: absolute;
+            width: 100%;
+            bottom: 20px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #fff;
+            border-radius: 5px;
+        }
+        #startGameScreen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 12, 41, 0.9);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 20;
+        }
+        #startGameScreen h1 {
+            font-size: 24px;
+            margin: 0;
+            text-align: center;
+        }
+        #startGameScreen span {
+            font-size: 40px;
+            margin-top: 20px;
+        }
+        #gameOverScreen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0c29;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ff3333;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 20;
+        }
+        #gameOverScreen h1 {
+            font-size: 36px;
+            margin: 0;
+            animation: parpadeo 0.5s infinite;
+        }
+        #gameOverScreen span {
+            font-size: 40px;
+            margin-top: 20px;
+        }
+        @keyframes entradaGalactica {
+            0% { opacity: 0; transform: translateY(-100px) scale(0.8); filter: brightness(2); }
+            50% { opacity: 0.7; transform: translateY(20px) scale(1.1); filter: brightness(1.5); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+        }
+        .animar-entrada {
+            animation: entradaGalactica 0.8s ease-out;
+        }
+        @keyframes parpadeo {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        @keyframes estrella {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) rotate(180deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <button id="inicio">¡Comenzar Trivia!</button>
+    <button id="inicio">PLAY</button>
     <div id="contenedor-juego">
+        <div id="puntos">Puntos: 0</div>
         <div id="imagen"></div>
         <div id="pregunta"></div>
         <div id="opciones"></div>
         <div id="resultado"></div>
+    </div>
+    <div id="minijuego">
+        <div id="gameMessage"></div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+    <div id="startGameScreen">
+        <h1>¡PREPÁRATE PARA ESQUIVAR!</h1>
+        <span>🪬</span>
+    </div>
+    <div id="gameOverScreen">
+        <h1>GAME OVER</h1>
+        <span>💀</span>
     </div>
 
     <script>
@@ -98,27 +267,70 @@
             { pregunta: "¿Cuál es la capital de Japón?", opciones: ["Osaka", "Tokio", "Hiroshima"], correcta: "Tokio", genero: "geografia", imagen: "🌎" },
             { pregunta: "¿Quién desarrolló la teoría de la relatividad?", opciones: ["Isaac Newton", "Albert Einstein", "Galileo Galilei"], correcta: "Albert Einstein", genero: "ciencia", imagen: "🧪" },
             { pregunta: "¿Qué animal es el mamífero más grande del mundo?", opciones: ["Elefante", "Ballena azul", "Oso polar"], correcta: "Ballena azul", genero: "biologia", imagen: "🐢" },
-            { pregunta: "¿En qué siglo nació William Shakespeare?", opciones: ["Siglo XV", "Siglo XVI", "Siglo XVII"], correcta: "Siglo XVI", genero: "literatura", imagen: "📖" }
+            { pregunta: "¿En qué siglo nació William Shakespeare?", opciones: ["Siglo XV", "Siglo XVI", "Siglo XVII"], correcta: "Siglo XVI", genero: "literatura", imagen: "📖" },
+            { pregunta: "¿Cuál es la capital de Australia?", opciones: ["Sídney", "Canberra", "Melbourne"], correcta: "Canberra", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿En qué año terminó la Primera Guerra Mundial?", opciones: ["1918", "1920", "1914"], correcta: "1918", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué gas es el más abundante en la atmósfera terrestre?", opciones: ["Oxígeno", "Nitrógeno", "Dióxido de carbono"], correcta: "Nitrógeno", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿Quién escribió 'Cien años de soledad'?", opciones: ["Gabriel García Márquez", "Mario Vargas Llosa", "Julio Cortázar"], correcta: "Gabriel García Márquez", genero: "literatura", imagen: "📖" },
+            { pregunta: "¿Qué montaña es la más alta del mundo?", opciones: ["Kilimanjaro", "Everest", "Aconcagua"], correcta: "Everest", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Quién fue el primer presidente de Estados Unidos?", opciones: ["Abraham Lincoln", "George Washington", "Thomas Jefferson"], correcta: "George Washington", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué animal es conocido por su cuello largo?", opciones: ["Jirafa", "Elefante", "Camello"], correcta: "Jirafa", genero: "biologia", imagen: "🐢" },
+            { pregunta: "¿Quién pintó 'La noche estrellada'?", opciones: ["Claude Monet", "Vincent van Gogh", "Edvard Munch"], correcta: "Vincent van Gogh", genero: "arte", imagen: "🎨" },
+            { pregunta: "¿Cuál es el país más grande del mundo por superficie?", opciones: ["Canadá", "Rusia", "China"], correcta: "Rusia", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿En qué año se firmó la Declaración de Independencia de EE.UU.?", opciones: ["1776", "1789", "1800"], correcta: "1776", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué científico propuso las leyes del movimiento?", opciones: ["Isaac Newton", "Nikola Tesla", "Albert Einstein"], correcta: "Isaac Newton", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿Qué obra escribió Homero?", opciones: ["La Divina Comedia", "La Ilíada", "El Quijote"], correcta: "La Ilíada", genero: "literatura", imagen: "📖" },
+            { pregunta: "¿Cuál es el continente más pequeño en superficie?", opciones: ["África", "Australia", "Antártida"], correcta: "Australia", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿En qué siglo ocurrió la Revolución Francesa?", opciones: ["Siglo XVII", "Siglo XVIII", "Siglo XIX"], correcta: "Siglo XVIII", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué órgano del cuerpo humano bompea sangre?", opciones: ["Hígado", "Corazón", "Pulmones"], correcta: "Corazón", genero: "biologia", imagen: "🐢" },
+            { pregunta: "¿Quién esculpió el 'David'?", opciones: ["Michelangelo", "Donatello", "Rodin"], correcta: "Michelangelo", genero: "arte", imagen: "🎨" },
+            { pregunta: "¿Cuál es la capital de Italia?", opciones: ["Milán", "Roma", "Venecia"], correcta: "Roma", genero: "geografia", imagen: "🌎" },
+            { pregunta: "¿Qué elemento tiene el número atómico 1?", opciones: ["Helio", "Hidrógeno", "Litio"], correcta: "Hidrógeno", genero: "ciencia", imagen: "🧪" },
+            { pregunta: "¿En qué año cayó el Muro de Berlín?", opciones: ["1989", "1991", "1985"], correcta: "1989", genero: "historia", imagen: "📜" },
+            { pregunta: "¿Qué ave es conocida por no volar y vivir en la Antártida?", opciones: ["Pingüino", "Avestruz", "Emú"], correcta: "Pingüino", genero: "biologia", imagen: "🐢" }
         ];
 
-        // Cargar sonidos
-        const sonidoCorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/217/217-preview.mp3"); // Retro Achievement
-        const sonidoIncorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3"); // Arcade Retro Game Over
+        const sonidoCorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/217/217-preview.mp3");
+        const sonidoIncorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3");
+        const sonidoGameOver = new Audio("https://assets.mixkit.co/active_storage/sfx/1944/1944-preview.mp3");
 
         let preguntaActual = null;
         let preguntasUsadas = [];
+        let puntos = 0;
+        let audioDesbloqueado = false;
 
-        // Botón de inicio
+        const minijuego = document.getElementById("minijuego");
+        const gameCanvas = document.getElementById("gameCanvas");
+        const gameMessage = document.getElementById("gameMessage");
+        const startGameScreen = document.getElementById("startGameScreen");
+        const gameOverScreen = document.getElementById("gameOverScreen");
+        const ctx = gameCanvas.getContext("2d");
+        let naveX = 180;
+        let enemigos = [];
+        let balas = [];
+        let juegoActivo = false;
+        let tiempoRestante = 15;
+        let intervaloJuego;
+        let toqueActivo = false;
+        let toqueX = 0;
+
         const botonInicio = document.getElementById("inicio");
         const contenedorJuego = document.getElementById("contenedor-juego");
+        const puntosDiv = document.getElementById("puntos");
 
         botonInicio.addEventListener("click", () => {
-            // Desbloquear audio
-            sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(() => {});
-            sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(() => {});
-            // Ocultar botón y mostrar juego
+            if (!audioDesbloqueado) {
+                sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(() => {});
+                sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(() => {});
+                sonidoGameOver.play().then(() => sonidoGameOver.pause()).catch(() => {});
+                audioDesbloqueado = true;
+            }
             botonInicio.style.display = "none";
-            contenedorJuego.style.display = "flex"; // Cambiado a flex para centrar
+            contenedorJuego.style.display = "flex";
+            puntosDiv.style.opacity = "1";
+            contenedorJuego.classList.add("animar-entrada");
+            puntos = 0;
+            actualizarPuntos();
             mostrarPregunta();
         });
 
@@ -137,6 +349,10 @@
             preguntaActual = nuevaPregunta;
             preguntasUsadas.push(preguntaActual);
 
+            contenedorJuego.classList.remove("animar-entrada");
+            void contenedorJuego.offsetWidth;
+            contenedorJuego.classList.add("animar-entrada");
+
             document.getElementById("imagen").innerText = preguntaActual.imagen;
             document.getElementById("pregunta").innerText = preguntaActual.pregunta;
             const opcionesDiv = document.getElementById("opciones");
@@ -151,18 +367,159 @@
             document.getElementById("resultado").innerHTML = "";
         }
 
+        function deshabilitarOpciones() {
+            const botones = document.querySelectorAll(".opcion");
+            botones.forEach(boton => {
+                boton.disabled = true;
+            });
+        }
+
         function verificarRespuesta(respuesta) {
+            deshabilitarOpciones(); // Bloquear todas las opciones tras la primera selección
             const resultado = document.getElementById("resultado");
             if (respuesta === preguntaActual.correcta) {
-                resultado.innerHTML = '<span class="correcto">¡Correcto! 🎉</span>';
+                resultado.innerHTML = '<span class="correcto">¡CORRECTO!</span>';
+                puntos += 10;
+                actualizarPuntos();
                 sonidoCorrecto.currentTime = 0;
                 sonidoCorrecto.play().catch(error => console.log("Error al reproducir sonido correcto:", error));
+                setTimeout(mostrarPregunta, 2000);
             } else {
-                resultado.innerHTML = `<span class="incorrecto">Incorrecto. La respuesta correcta es ${preguntaActual.correcta}.</span>`;
+                resultado.innerHTML = `<span class="incorrecto">INCORRECTO<br>RESPUESTA: ${preguntaActual.correcta}</span>`;
                 sonidoIncorrecto.currentTime = 0;
                 sonidoIncorrecto.play().catch(error => console.log("Error al reproducir sonido incorrecto:", error));
+                setTimeout(mostrarPantallaInicioMinijuego, 2000);
             }
-            setTimeout(mostrarPregunta, 2000);
+        }
+
+        function actualizarPuntos() {
+            document.getElementById("puntos").innerText = `Puntos: ${puntos}`;
+        }
+
+        function mostrarPantallaInicioMinijuego() {
+            contenedorJuego.style.display = "none";
+            startGameScreen.style.display = "flex";
+            setTimeout(() => {
+                startGameScreen.style.display = "none";
+                iniciarMinijuego();
+            }, 2000);
+        }
+
+        function iniciarMinijuego() {
+            minijuego.style.display = "block";
+            gameOverScreen.style.display = "none";
+            juegoActivo = true;
+            naveX = 180;
+            enemigos = [];
+            balas = [];
+            tiempoRestante = 15;
+
+            for (let i = 0; i < 5; i++) {
+                const velocidad = 1.5 + (i % 3) * 0.5;
+                enemigos.push({ x: 50 + i * 70, y: 50 + (i % 3) * 50, direccion: Math.random() < 0.5 ? 1 : -1, velocidad: velocidad });
+            }
+
+            gameCanvas.addEventListener("touchstart", iniciarToque);
+            gameCanvas.addEventListener("touchmove", moverToque);
+            gameCanvas.addEventListener("touchend", finalizarToque);
+            intervaloJuego = setInterval(actualizarJuego, 1000 / 60);
+            setTimeout(finalizarMinijuego, 15000);
+        }
+
+        function iniciarToque(e) {
+            if (!juegoActivo) return;
+            e.preventDefault();
+            toqueActivo = true;
+            toqueX = e.touches[0].clientX;
+        }
+
+        function moverToque(e) {
+            if (!juegoActivo || !toqueActivo) return;
+            e.preventDefault();
+            const nuevoToqueX = e.touches[0].clientX;
+            const diferencia = nuevoToqueX - toqueX;
+            naveX += diferencia / 2;
+            if (naveX < 0) naveX = 0;
+            if (naveX > 360) naveX = 360;
+            toqueX = nuevoToqueX;
+        }
+
+        function finalizarToque(e) {
+            if (!juegoActivo) return;
+            e.preventDefault();
+            toqueActivo = false;
+        }
+
+        function actualizarJuego() {
+            if (!juegoActivo) return;
+
+            ctx.clearRect(0, 0, 400, 600);
+            gameMessage.innerText = `TIEMPO: ${Math.ceil(tiempoRestante)}`;
+
+            ctx.font = "40px Arial";
+            ctx.shadowColor = "#00d4ff";
+            ctx.shadowBlur = 2;
+            ctx.fillText("🪬", naveX, 570);
+            ctx.shadowBlur = 0;
+
+            enemigos.forEach(enemigo => {
+                enemigo.x += enemigo.velocidad * enemigo.direccion;
+                if (enemigo.x > 360 || enemigo.x < 0) enemigo.direccion *= -1;
+                ctx.font = "40px Arial";
+                ctx.shadowColor = "#ff3333";
+                ctx.shadowBlur = 2;
+                ctx.fillText("🧿", enemigo.x, enemigo.y);
+                ctx.shadowBlur = 0;
+
+                if (Math.random() < 0.02) {
+                    balas.push({ x: enemigo.x + 20, y: enemigo.y + 20 });
+                }
+            });
+
+            balas.forEach((bala, index) => {
+                bala.y += 7;
+                ctx.beginPath();
+                ctx.arc(bala.x + 2.5, bala.y + 5, 5, 0, Math.PI * 2);
+                ctx.fillStyle = "#ff00ff";
+                ctx.fill();
+                if (bala.y > 600) balas.splice(index, 1);
+                if (bala.x > naveX && bala.x < naveX + 40 && bala.y > 530 && bala.y < 570) {
+                    perderMinijuego();
+                }
+            });
+
+            tiempoRestante -= 1 / 60;
+        }
+
+        function finalizarMinijuego() {
+            if (!juegoActivo) return;
+            juegoActivo = false;
+            clearInterval(intervaloJuego);
+            gameCanvas.removeEventListener("touchstart", iniciarToque);
+            gameCanvas.removeEventListener("touchmove", moverToque);
+            gameCanvas.removeEventListener("touchend", finalizarToque);
+            minijuego.style.display = "none";
+            contenedorJuego.style.display = "flex";
+            mostrarPregunta();
+        }
+
+        function perderMinijuego() {
+            juegoActivo = false;
+            clearInterval(intervaloJuego);
+            gameCanvas.removeEventListener("touchstart", iniciarToque);
+            gameCanvas.removeEventListener("touchmove", moverToque);
+            gameCanvas.removeEventListener("touchend", finalizarToque);
+            minijuego.style.display = "none";
+            gameOverScreen.style.display = "flex";
+            sonidoGameOver.currentTime = 0;
+            sonidoGameOver.play().catch(error => console.log("Error al reproducir sonido Game Over:", error));
+            setTimeout(() => {
+                gameOverScreen.style.display = "none";
+                botonInicio.style.display = "block";
+                preguntasUsadas = [];
+                puntos = 0;
+                actualizarPuntos();
+            }, 2000);
         }
     </script>
 </body>
