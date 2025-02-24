@@ -96,12 +96,34 @@
             text-shadow: none;
             z-index: 10;
         }
+        #temporizador {
+            font-size: 14px;
+            position: absolute;
+            top: -70px;
+            left: 10px;
+            color: #00ff00;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        #vidas {
+            font-size: 14px;
+            position: absolute;
+            top: -70px;
+            right: 10px;
+            color: #ff0000;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            opacity: 0;
+        }
         .correcto {
             color: #00ff00;
             animation: parpadeo 0.5s infinite;
         }
         .incorrecto {
             color: #ff3333;
+            animation: parpadeo 0.5s infinite;
+        }
+        .recompensa {
+            color: #ff9999;
             animation: parpadeo 0.5s infinite;
         }
         #inicio {
@@ -206,6 +228,36 @@
             font-size: 40px;
             margin-top: 20px;
         }
+        #victoryScreen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0c29;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #00ff00;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 20;
+        }
+        #victoryScreen h1 {
+            font-size: 36px;
+            margin: 0;
+            animation: parpadeo 0.5s infinite;
+        }
+        #victoryScreen span {
+            font-size: 40px;
+            margin-top: 20px;
+        }
+        #mejor-puntaje {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #ffd700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
         @keyframes entradaGalactica {
             0% { opacity: 0; transform: translateY(-100px) scale(0.8); filter: brightness(2); }
             50% { opacity: 0.7; transform: translateY(20px) scale(1.1); filter: brightness(1.5); }
@@ -213,6 +265,20 @@
         }
         .animar-entrada {
             animation: entradaGalactica 0.8s ease-out;
+        }
+        @keyframes deslizarEntrada {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes deslizarSalida {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
+        }
+        .entrar {
+            animation: deslizarEntrada 0.5s ease-in;
+        }
+        .salir {
+            animation: deslizarSalida 0.5s ease-out;
         }
         @keyframes parpadeo {
             0% { opacity: 1; }
@@ -229,6 +295,8 @@
 <body>
     <button id="inicio">PLAY</button>
     <div id="contenedor-juego">
+        <div id="temporizador">Tiempo: 10</div>
+        <div id="vidas">Vidas: </div>
         <div id="puntos">Puntos: 0</div>
         <div id="imagen"></div>
         <div id="pregunta"></div>
@@ -246,64 +314,97 @@
     <div id="gameOverScreen">
         <h1>GAME OVER</h1>
         <span>💀</span>
+        <div id="mejor-puntaje">Mejor Puntaje: 0</div>
+    </div>
+    <div id="victoryScreen">
+        <h1>WIN</h1>
+        <span>🪬</span>
     </div>
 
     <script>
         const preguntas = [
-            { pregunta: "¿Cuál es la capital de Brasil?", opciones: ["Río de Janeiro", "Brasilia", "São Paulo"], correcta: "Brasilia", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿En qué año llegó el hombre a la Luna?", opciones: ["1969", "1975", "1965"], correcta: "1969", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué planeta es el más grande del sistema solar?", opciones: ["Tierra", "Júpiter", "Saturno"], correcta: "Júpiter", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?", opciones: ["Miguel de Cervantes", "Jorge Luis Borges", "Lope de Vega"], correcta: "Miguel de Cervantes", genero: "literatura", imagen: "📖" },
-            { pregunta: "¿Cuál es el río más largo del mundo?", opciones: ["Amazonas", "Nilo", "Misisipi"], correcta: "Amazonas", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿En qué continente está Egipto?", opciones: ["Asia", "África", "Europa"], correcta: "África", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Qué elemento químico tiene el símbolo 'O'?", opciones: ["Oro", "Oxígeno", "Osmio"], correcta: "Oxígeno", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿En qué año comenzó la Segunda Guerra Mundial?", opciones: ["1939", "1945", "1914"], correcta: "1939", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Cuál es el océano más grande del mundo?", opciones: ["Atlántico", "Índico", "Pacífico"], correcta: "Pacífico", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Quién pintó la 'Mona Lisa'?", opciones: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso"], correcta: "Leonardo da Vinci", genero: "arte", imagen: "🎨" },
-            { pregunta: "¿Qué país tiene más habitantes en el mundo?", opciones: ["India", "China", "Estados Unidos"], correcta: "China", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Cuál es el metal más abundante en la corteza terrestre?", opciones: ["Hierro", "Aluminio", "Cobre"], correcta: "Aluminio", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿En qué año se descubrió América?", opciones: ["1492", "1453", "1519"], correcta: "1492", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué instrumento mide la presión atmosférica?", opciones: ["Termómetro", "Barómetro", "Higrómetro"], correcta: "Barómetro", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿Cuál es la capital de Japón?", opciones: ["Osaka", "Tokio", "Hiroshima"], correcta: "Tokio", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Quién desarrolló la teoría de la relatividad?", opciones: ["Isaac Newton", "Albert Einstein", "Galileo Galilei"], correcta: "Albert Einstein", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿Qué animal es el mamífero más grande del mundo?", opciones: ["Elefante", "Ballena azul", "Oso polar"], correcta: "Ballena azul", genero: "biologia", imagen: "🐢" },
-            { pregunta: "¿En qué siglo nació William Shakespeare?", opciones: ["Siglo XV", "Siglo XVI", "Siglo XVII"], correcta: "Siglo XVI", genero: "literatura", imagen: "📖" },
-            { pregunta: "¿Cuál es la capital de Australia?", opciones: ["Sídney", "Canberra", "Melbourne"], correcta: "Canberra", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿En qué año terminó la Primera Guerra Mundial?", opciones: ["1918", "1920", "1914"], correcta: "1918", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué gas es el más abundante en la atmósfera terrestre?", opciones: ["Oxígeno", "Nitrógeno", "Dióxido de carbono"], correcta: "Nitrógeno", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿Quién escribió 'Cien años de soledad'?", opciones: ["Gabriel García Márquez", "Mario Vargas Llosa", "Julio Cortázar"], correcta: "Gabriel García Márquez", genero: "literatura", imagen: "📖" },
-            { pregunta: "¿Qué montaña es la más alta del mundo?", opciones: ["Kilimanjaro", "Everest", "Aconcagua"], correcta: "Everest", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Quién fue el primer presidente de Estados Unidos?", opciones: ["Abraham Lincoln", "George Washington", "Thomas Jefferson"], correcta: "George Washington", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué animal es conocido por su cuello largo?", opciones: ["Jirafa", "Elefante", "Camello"], correcta: "Jirafa", genero: "biologia", imagen: "🐢" },
-            { pregunta: "¿Quién pintó 'La noche estrellada'?", opciones: ["Claude Monet", "Vincent van Gogh", "Edvard Munch"], correcta: "Vincent van Gogh", genero: "arte", imagen: "🎨" },
-            { pregunta: "¿Cuál es el país más grande del mundo por superficie?", opciones: ["Canadá", "Rusia", "China"], correcta: "Rusia", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿En qué año se firmó la Declaración de Independencia de EE.UU.?", opciones: ["1776", "1789", "1800"], correcta: "1776", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué científico propuso las leyes del movimiento?", opciones: ["Isaac Newton", "Nikola Tesla", "Albert Einstein"], correcta: "Isaac Newton", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿Qué obra escribió Homero?", opciones: ["La Divina Comedia", "La Ilíada", "El Quijote"], correcta: "La Ilíada", genero: "literatura", imagen: "📖" },
-            { pregunta: "¿Cuál es el continente más pequeño en superficie?", opciones: ["África", "Australia", "Antártida"], correcta: "Australia", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿En qué siglo ocurrió la Revolución Francesa?", opciones: ["Siglo XVII", "Siglo XVIII", "Siglo XIX"], correcta: "Siglo XVIII", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué órgano del cuerpo humano bompea sangre?", opciones: ["Hígado", "Corazón", "Pulmones"], correcta: "Corazón", genero: "biologia", imagen: "🐢" },
-            { pregunta: "¿Quién esculpió el 'David'?", opciones: ["Michelangelo", "Donatello", "Rodin"], correcta: "Michelangelo", genero: "arte", imagen: "🎨" },
-            { pregunta: "¿Cuál es la capital de Italia?", opciones: ["Milán", "Roma", "Venecia"], correcta: "Roma", genero: "geografia", imagen: "🌎" },
-            { pregunta: "¿Qué elemento tiene el número atómico 1?", opciones: ["Helio", "Hidrógeno", "Litio"], correcta: "Hidrógeno", genero: "ciencia", imagen: "🧪" },
-            { pregunta: "¿En qué año cayó el Muro de Berlín?", opciones: ["1989", "1991", "1985"], correcta: "1989", genero: "historia", imagen: "📜" },
-            { pregunta: "¿Qué ave es conocida por no volar y vivir en la Antártida?", opciones: ["Pingüino", "Avestruz", "Emú"], correcta: "Pingüino", genero: "biologia", imagen: "🐢" }
+            { pregunta: "¿Cuál es la capital de Brasil?", opciones: ["Río de Janeiro", "Brasilia", "São Paulo"], correcta: "Brasilia", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿En qué año llegó el hombre a la Luna?", opciones: ["1969", "1975", "1965"], correcta: "1969", genero: "historia", dificultad: "fácil", imagen: "📜" },
+            { pregunta: "¿Qué planeta es el más grande del sistema solar?", opciones: ["Tierra", "Júpiter", "Saturno"], correcta: "Júpiter", genero: "ciencia", dificultad: "fácil", imagen: "🧪" },
+            { pregunta: "¿Quién escribió 'Don Quijote de la Mancha'?", opciones: ["Miguel de Cervantes", "Jorge Luis Borges", "Lope de Vega"], correcta: "Miguel de Cervantes", genero: "literatura", dificultad: "medio", imagen: "📖" },
+            { pregunta: "¿Cuál es el río más largo del mundo?", opciones: ["Amazonas", "Nilo", "Misisipi"], correcta: "Amazonas", genero: "geografia", dificultad: "medio", imagen: "🌎" },
+            { pregunta: "¿En qué continente está Egipto?", opciones: ["Asia", "África", "Europa"], correcta: "África", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Qué elemento químico tiene el símbolo 'O'?", opciones: ["Oro", "Oxígeno", "Osmio"], correcta: "Oxígeno", genero: "ciencia", dificultad: "fácil", imagen: "🧪" },
+            { pregunta: "¿En qué año comenzó la Segunda Guerra Mundial?", opciones: ["1939", "1945", "1914"], correcta: "1939", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Cuál es el océano más grande del mundo?", opciones: ["Atlántico", "Índico", "Pacífico"], correcta: "Pacífico", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Quién pintó la 'Mona Lisa'?", opciones: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso"], correcta: "Leonardo da Vinci", genero: "arte", dificultad: "medio", imagen: "🎨" },
+            { pregunta: "¿Qué país tiene más habitantes en el mundo?", opciones: ["India", "China", "Estados Unidos"], correcta: "China", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Cuál es el metal más abundante en la corteza terrestre?", opciones: ["Hierro", "Aluminio", "Cobre"], correcta: "Aluminio", genero: "ciencia", dificultad: "medio", imagen: "🧪" },
+            { pregunta: "¿En qué año se descubrió América?", opciones: ["1492", "1453", "1519"], correcta: "1492", genero: "historia", dificultad: "fácil", imagen: "📜" },
+            { pregunta: "¿Qué instrumento mide la presión atmosférica?", opciones: ["Termómetro", "Barómetro", "Higrómetro"], correcta: "Barómetro", genero: "ciencia", dificultad: "medio", imagen: "🧪" },
+            { pregunta: "¿Cuál es la capital de Japón?", opciones: ["Osaka", "Tokio", "Hiroshima"], correcta: "Tokio", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Quién desarrolló la teoría de la relatividad?", opciones: ["Isaac Newton", "Albert Einstein", "Galileo Galilei"], correcta: "Albert Einstein", genero: "ciencia", dificultad: "difícil", imagen: "🧪" },
+            { pregunta: "¿Qué animal es el mamífero más grande del mundo?", opciones: ["Elefante", "Ballena azul", "Oso polar"], correcta: "Ballena azul", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿En qué siglo nació William Shakespeare?", opciones: ["Siglo XV", "Siglo XVI", "Siglo XVII"], correcta: "Siglo XVI", genero: "literatura", dificultad: "medio", imagen: "📖" },
+            { pregunta: "¿Cuál es la capital de Australia?", opciones: ["Sídney", "Canberra", "Melbourne"], correcta: "Canberra", genero: "geografia", dificultad: "medio", imagen: "🌎" },
+            { pregunta: "¿En qué año terminó la Primera Guerra Mundial?", opciones: ["1918", "1920", "1914"], correcta: "1918", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Qué gas es el más abundante en la atmósfera terrestre?", opciones: ["Oxígeno", "Nitrógeno", "Dióxido de carbono"], correcta: "Nitrógeno", genero: "ciencia", dificultad: "medio", imagen: "🧪" },
+            { pregunta: "¿Quién escribió 'Cien años de soledad'?", opciones: ["Gabriel García Márquez", "Mario Vargas Llosa", "Julio Cortázar"], correcta: "Gabriel García Márquez", genero: "literatura", dificultad: "difícil", imagen: "📖" },
+            { pregunta: "¿Qué montaña es la más alta del mundo?", opciones: ["Kilimanjaro", "Everest", "Aconcagua"], correcta: "Everest", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Quién fue el primer presidente de Estados Unidos?", opciones: ["Abraham Lincoln", "George Washington", "Thomas Jefferson"], correcta: "George Washington", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Qué animal es conocido por su cuello largo?", opciones: ["Jirafa", "Elefante", "Camello"], correcta: "Jirafa", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿Quién pintó 'La noche estrellada'?", opciones: ["Claude Monet", "Vincent van Gogh", "Edvard Munch"], correcta: "Vincent van Gogh", genero: "arte", dificultad: "medio", imagen: "🎨" },
+            { pregunta: "¿Cuál es el país más grande del mundo por superficie?", opciones: ["Canadá", "Rusia", "China"], correcta: "Rusia", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿En qué año se firmó la Declaración de Independencia de EE.UU.?", opciones: ["1776", "1789", "1800"], correcta: "1776", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Qué científico propuso las leyes del movimiento?", opciones: ["Isaac Newton", "Nikola Tesla", "Albert Einstein"], correcta: "Isaac Newton", genero: "ciencia", dificultad: "difícil", imagen: "🧪" },
+            { pregunta: "¿Qué obra escribió Homero?", opciones: ["La Divina Comedia", "La Ilíada", "El Quijote"], correcta: "La Ilíada", genero: "literatura", dificultad: "difícil", imagen: "📖" },
+            { pregunta: "¿Cuál es el continente más pequeño en superficie?", opciones: ["África", "Australia", "Antártida"], correcta: "Australia", genero: "geografia", dificultad: "medio", imagen: "🌎" },
+            { pregunta: "¿En qué siglo ocurrió la Revolución Francesa?", opciones: ["Siglo XVII", "Siglo XVIII", "Siglo XIX"], correcta: "Siglo XVIII", genero: "historia", dificultad: "difícil", imagen: "📜" },
+            { pregunta: "¿Qué órgano del cuerpo humano bompea sangre?", opciones: ["Hígado", "Corazón", "Pulmones"], correcta: "Corazón", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿Quién esculpió el 'David'?", opciones: ["Michelangelo", "Donatello", "Rodin"], correcta: "Michelangelo", genero: "arte", dificultad: "difícil", imagen: "🎨" },
+            { pregunta: "¿Cuál es la capital de Italia?", opciones: ["Milán", "Roma", "Venecia"], correcta: "Roma", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Qué elemento tiene el número atómico 1?", opciones: ["Helio", "Hidrógeno", "Litio"], correcta: "Hidrógeno", genero: "ciencia", dificultad: "medio", imagen: "🧪" },
+            { pregunta: "¿En qué año cayó el Muro de Berlín?", opciones: ["1989", "1991", "1985"], correcta: "1989", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Qué ave es conocida por no volar y vivir en la Antártida?", opciones: ["Pingüino", "Avestruz", "Emú"], correcta: "Pingüino", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿Cuál es la capital de Francia?", opciones: ["Lyon", "París", "Marsella"], correcta: "París", genero: "geografia", dificultad: "fácil", imagen: "🌎" },
+            { pregunta: "¿Quién escribió 'Romeo y Julieta'?", opciones: ["Charles Dickens", "William Shakespeare", "Jane Austen"], correcta: "William Shakespeare", genero: "literatura", dificultad: "medio", imagen: "📖" },
+            { pregunta: "¿Qué animal es conocido por cambiar de color?", opciones: ["Camaleón", "Cebra", "Leopardo"], correcta: "Camaleón", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿En qué año comenzó la Revolución Industrial?", opciones: ["1750", "1850", "1650"], correcta: "1750", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Cuál es el elemento más abundante en el universo?", opciones: ["Oxígeno", "Hidrógeno", "Helio"], correcta: "Hidrógeno", genero: "ciencia", dificultad: "medio", imagen: "🧪" },
+            { pregunta: "¿Quién pintó 'El grito'?", opciones: ["Edvard Munch", "Pablo Picasso", "Claude Monet"], correcta: "Edvard Munch", genero: "arte", dificultad: "difícil", imagen: "🎨" },
+            { pregunta: "¿Cuál es la capital de Canadá?", opciones: ["Toronto", "Vancouver", "Ottawa"], correcta: "Ottawa", genero: "geografia", dificultad: "medio", imagen: "🌎" },
+            { pregunta: "¿En qué año se fundó la ONU?", opciones: ["1945", "1935", "1955"], correcta: "1945", genero: "historia", dificultad: "medio", imagen: "📜" },
+            { pregunta: "¿Qué animal es el más rápido en tierra?", opciones: ["León", "Guepardo", "Caballo"], correcta: "Guepardo", genero: "biologia", dificultad: "fácil", imagen: "🐢" },
+            { pregunta: "¿Quién escribió '1984'?", opciones: ["George Orwell", "Aldous Huxley", "Ray Bradbury"], correcta: "George Orwell", genero: "literatura", dificultad: "difícil", imagen: "📖" },
+            { pregunta: "¿Cuál es el desierto más grande del mundo?", opciones: ["Sahara", "Antártida", "Gobi"], correcta: "Antártida", genero: "geografia", dificultad: "difícil", imagen: "🌎" },
+            { pregunta: "¿Qué gas compone la mayor parte del Sol?", opciones: ["Hidrógeno", "Helio", "Oxígeno"], correcta: "Hidrógeno", genero: "ciencia", dificultad: "medio", imagen: "🧪" }
         ];
 
         const sonidoCorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/217/217-preview.mp3");
         const sonidoIncorrecto = new Audio("https://assets.mixkit.co/active_storage/sfx/213/213-preview.mp3");
         const sonidoGameOver = new Audio("https://assets.mixkit.co/active_storage/sfx/1944/1944-preview.mp3");
+        const musicaTrivia = new Audio("https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Steve_Combs/Notes/Steve_Combs_-_09_-_Arcade_Controller.mp3");
+        const musicaMinijuego = new Audio("https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/ZiAEw3qA5bZx2P8eYV9gWBuMjTLv9bTXuKIKs8p0.mp3");
+
+        // Configurar volúmenes y bucle
+        musicaTrivia.loop = true;
+        musicaMinijuego.loop = true;
+        musicaTrivia.volume = 0.3;      // 30% para la trivia
+        musicaMinijuego.volume = 0.3;   // 30% para el minijuego
+        sonidoCorrecto.volume = 0.7;    // 70% para efectos
+        sonidoIncorrecto.volume = 0.7;  // 70% para efectos
+        sonidoGameOver.volume = 0.7;    // 70% para efectos
 
         let preguntaActual = null;
         let preguntasUsadas = [];
+        let preguntasBarajadas = [];
         let puntos = 0;
         let audioDesbloqueado = false;
+        let tiempoRestantePregunta = 10;
+        let intervaloTemporizador;
+        let vidasExtras = 0;
 
         const minijuego = document.getElementById("minijuego");
         const gameCanvas = document.getElementById("gameCanvas");
         const gameMessage = document.getElementById("gameMessage");
         const startGameScreen = document.getElementById("startGameScreen");
         const gameOverScreen = document.getElementById("gameOverScreen");
+        const victoryScreen = document.getElementById("victoryScreen");
         const ctx = gameCanvas.getContext("2d");
         let naveX = 180;
         let enemigos = [];
@@ -313,45 +414,92 @@
         let intervaloJuego;
         let toqueActivo = false;
         let toqueX = 0;
+        let inicioDisparos = false;
+        let enemigoImgCargada = false;
+
+        // Crear imagen del SVG para los enemigos
+        const enemigoImg = new Image();
+        enemigoImg.src = 'data:image/svg+xml;base64,' + btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" xml:space="preserve">
+                <path fill="#8EC0D6" d="M279.319 193.095H120.682l26.439-52.876H252.88z"/>
+                <path fill="#A9D2E0" d="m146.013 140.219-26.439 52.876h20.419l26.439-52.876z"/>
+                <path fill="#A880B2" d="M320.63 215.128c0 12.167-9.861 22.033-22.035 22.033H101.404c-12.165 0-22.032-9.867-22.032-22.033 0-12.168 9.867-22.033 22.032-22.033h197.191c12.174 0 22.035 9.866 22.035 22.033z"/>
+                <path fill="#B999C1" d="M101.339 215.128c0-12.168 9.867-22.033 22.032-22.033h-21.966c-12.165 0-22.032 9.865-22.032 22.033 0 12.167 9.867 22.033 22.032 22.033h21.966c-12.166.001-22.032-9.866-22.032-22.033z"/>
+                <path fill="#A880B2" d="M200.002 120.568c-10.853 0-19.653 8.799-19.653 19.651h39.301c0-10.852-8.8-19.651-19.648-19.651z"/>
+                <path fill="#B999C1" d="M204.791 121.181a19.645 19.645 0 0 0-4.789-.613c-10.853 0-19.653 8.799-19.653 19.651h9.58c0-9.196 6.327-16.896 14.862-19.038z"/>
+                <path fill="#FFE2A9" d="M200.002 120.568c1.48 0 2.919.177 4.307.489v-17.605a4.495 4.495 0 0 0-8.989 0v17.701a19.647 19.647 0 0 1 4.682-.585z"/>
+                <path fill="#FFDA88" d="M209.695 215.128a9.692 9.692 0 0 1-9.695 9.695c-5.353 0-9.695-4.341-9.695-9.695 0-5.353 4.342-9.694 9.695-9.694 5.358.001 9.695 4.342 9.695 9.694zM162.394 215.128a9.692 9.692 0 0 1-9.695 9.695c-5.353 0-9.695-4.341-9.695-9.695 0-5.353 4.342-9.694 9.695-9.694 5.358.001 9.695 4.342 9.695 9.694zM116.812 215.128c0 5.355-4.336 9.695-9.692 9.695s-9.692-4.341-9.692-9.695a9.693 9.693 0 0 1 19.384 0z"/>
+                <path fill="#FFE2A9" d="M101.339 215.127c0-3.152.674-6.143 1.867-8.855-3.4 1.505-5.778 4.898-5.778 8.855 0 3.958 2.378 7.351 5.778 8.858a21.92 21.92 0 0 1-1.867-8.858z"/>
+                <path fill="#FFDA88" d="M301.133 215.128a9.692 9.692 0 0 1-9.695 9.695c-5.353 0-9.692-4.341-9.692-9.695 0-5.353 4.34-9.694 9.692-9.694 5.358.001 9.695 4.342 9.695 9.694zM255.554 215.128a9.694 9.694 0 0 1-9.695 9.695c-5.353 0-9.695-4.341-9.695-9.695 0-5.353 4.343-9.694 9.695-9.694 5.355.001 9.695 4.342 9.695 9.694z"/>
+                <path fill="#8EC0D6" d="M112.874 237.162c7.559 20.815 43.676 36.592 87.125 36.592s79.56-15.778 87.128-36.592H112.874z"/>
+                <path fill="#A9D2E0" d="M142.368 237.162h-29.494c7.559 20.815 43.676 36.592 87.125 36.592 5.031 0 9.947-.233 14.747-.639-36.666-3.102-65.693-17.548-72.378-35.953z"/>
+                <path fill="#A9D2E0" d="m126.62 254.044-4.171 9.259c-3.489 7.743-.038 16.846 7.707 20.335 7.74 3.487 16.847.038 20.333-7.704l3.87-8.588c-11.064-3.364-20.519-7.915-27.739-13.302zM199.999 273.754c-5.246 0-10.38-.241-15.376-.682v8.057c0 8.491 6.886 15.376 15.376 15.376 8.496 0 15.379-6.885 15.379-15.376v-8.057c-4.998.441-10.132.682-15.379.682z"/>
+                <path fill="#8EC0D6" d="M274.094 253.484c-7.119 5.487-16.54 10.134-27.609 13.587l3.994 8.862c3.486 7.743 12.593 11.192 20.333 7.704 7.746-3.489 11.196-12.592 7.707-20.335l-4.425-9.818z"/>
+                <g><path fill="#161616" d="M279.32 197.633H120.681a4.536 4.536 0 0 1-4.059-6.567l7.652-15.304a4.544 4.544 0 0 1 6.088-2.029 4.539 4.539 0 0 1 2.029 6.088l-4.369 8.737h143.956l-21.902-43.802H149.924l-6.399 12.797a4.538 4.538 0 0 1-8.118-4.059l7.653-15.305a4.538 4.538 0 0 1 4.059-2.508H252.88c1.719 0 3.291.97 4.059 2.508l26.439 52.877a4.54 4.54 0 0 1-4.058 6.567z"/><path fill="#161616" d="M298.595 241.699H101.404c-14.651 0-26.571-11.92-26.571-26.571 0-14.651 11.92-26.571 26.571-26.571h197.191c14.652 0 26.572 11.92 26.572 26.571 0 14.651-11.92 26.571-26.572 26.571zm-197.191-44.066c-9.647 0-17.496 7.849-17.496 17.496 0 9.647 7.849 17.496 17.496 17.496h197.191c9.648 0 17.497-7.849 17.497-17.496 0-9.647-7.849-17.496-17.497-17.496H101.404zM219.65 144.756h-39.3a4.537 4.537 0 0 1-4.538-4.538c0-13.338 10.852-24.188 24.189-24.188 13.335 0 24.185 10.85 24.185 24.188a4.536 4.536 0 0 1-4.536 4.538zm-34.067-9.075h28.835c-1.932-6.124-7.663-10.576-14.416-10.576-6.753.001-12.487 4.452-14.419 10.576z"/><path fill="#161616" d="M200.002 120.568c1.482 0 2.919.177 4.307.489v-17.605a4.496 4.496 0 0 0-8.99 0v17.701a19.662 19.662 0 0 1 4.683-.585zM200.001 229.361c-7.848 0-14.233-6.385-14.233-14.233 0-7.848 6.385-14.231 14.233-14.231 7.848 0 14.231 6.384 14.231 14.231 0 7.848-6.384 14.233-14.231 14.233zm0-19.389a5.164 5.164 0 0 0-5.158 5.156 5.165 5.165 0 0 0 5.158 5.158 5.163 5.163 0 0 0 5.156-5.158 5.162 5.162 0 0 0-5.156-5.156zM152.7 229.361c-7.848 0-14.233-6.385-14.233-14.233 0-7.848 6.385-14.231 14.233-14.231 7.846 0 14.23 6.384 14.23 14.231 0 7.848-6.384 14.233-14.23 14.233zm0-19.389a5.164 5.164 0 0 0-5.158 5.156 5.165 5.165 0 0 0 5.158 5.158 5.163 5.163 0 0 0 5.155-5.158 5.162 5.162 0 0 0-5.155-5.156zM107.12 229.361c-7.848 0-14.231-6.385-14.231-14.233 0-7.848 6.384-14.231 14.231-14.231 7.848 0 14.231 6.384 14.231 14.231 0 7.848-6.384 14.233-14.231 14.233zm0-19.389a5.162 5.162 0 0 0-5.156 5.156 5.164 5.164 0 0 0 5.156 5.158 5.163 5.163 0 0 0 5.156-5.158 5.162 5.162 0 0 0-5.156-5.156zM291.437 229.361c-7.846 0-14.23-6.385-14.23-14.233 0-7.848 6.384-14.231 14.23-14.231 7.849 0 14.233 6.384 14.233 14.231 0 7.848-6.384 14.233-14.233 14.233zm0-19.389a5.162 5.162 0 0 0-5.155 5.156 5.163 5.163 0 0 0 5.155 5.158 5.163 5.163 0 0 0 5.158-5.158 5.162 5.162 0 0 0-5.158-5.156zM245.859 229.361c-7.849 0-14.233-6.385-14.233-14.233 0-7.848 6.384-14.231 14.233-14.231s14.233 6.384 14.233 14.231c-.001 7.848-6.384 14.233-14.233 14.233zm0-19.389a5.162 5.162 0 0 0-5.158 5.156c0 2.843 2.313 5.158 5.158 5.158s5.158-2.314 5.158-5.158a5.164 5.164 0 0 0-5.158-5.156zM199.998 278.292c-45.342 0-82.923-16.276-91.388-39.58a4.539 4.539 0 0 1 4.264-6.087h174.253a4.538 4.538 0 0 1 4.265 6.088c-5.444 14.976-23.391 27.483-49.23 34.316a4.535 4.535 0 0 1-5.548-3.227 4.536 4.536 0 0 1 3.226-5.546c18.676-4.938 32.903-13.112 39.733-22.556H120.407c11.517 16.05 43.706 27.517 79.591 27.517 5.874 0 11.971-.338 18.128-1.003a4.533 4.533 0 0 1 4.998 4.023 4.536 4.536 0 0 1-4.024 4.998 178.03 178.03 0 0 1-19.102 1.057z"/><path fill="#161616" d="M136.461 289.544c-2.783 0-5.557-.591-8.169-1.768a19.787 19.787 0 0 1-10.446-11.101 19.784 19.784 0 0 1 .465-15.234l4.171-9.26a4.542 4.542 0 0 1 3-2.529 4.543 4.543 0 0 1 3.851.756c6.784 5.063 15.895 9.419 26.345 12.598a4.539 4.539 0 0 1 2.817 6.205l-3.868 8.587a19.776 19.776 0 0 1-11.101 10.443 19.955 19.955 0 0 1-7.065 1.303zm-7.932-28.693-1.944 4.317a10.77 10.77 0 0 0-.254 8.291 10.767 10.767 0 0 0 5.688 6.043 10.756 10.756 0 0 0 8.291.253 10.766 10.766 0 0 0 6.041-5.682l1.792-3.979c-7.384-2.579-13.948-5.672-19.614-9.243zM200.001 301.043c-10.982 0-19.915-8.933-19.915-19.914v-8.057c0-1.273.535-2.487 1.474-3.347a4.586 4.586 0 0 1 3.464-1.173c9.979.883 19.974.883 29.956 0a4.539 4.539 0 0 1 4.936 4.52v8.057c0 10.98-8.933 19.914-19.915 19.914zm-10.84-23.084v3.17c0 5.976 4.862 10.839 10.84 10.839s10.84-4.862 10.84-10.839v-3.17a177 177 0 0 1-21.68 0zM264.508 289.544c-2.384 0-4.771-.434-7.066-1.303a19.787 19.787 0 0 1-11.101-10.444l-3.991-8.861a4.535 4.535 0 0 1 2.786-6.196c10.46-3.263 19.518-7.707 26.188-12.849a4.52 4.52 0 0 1 3.873-.808 4.534 4.534 0 0 1 3.034 2.538l4.425 9.819a19.775 19.775 0 0 1 .467 15.234 19.78 19.78 0 0 1-10.446 11.101 19.846 19.846 0 0 1-8.169 1.769zm-11.826-19.76 1.932 4.286a10.768 10.768 0 0 0 6.044 5.684 10.746 10.746 0 0 0 8.289-.253 10.768 10.768 0 0 0 5.687-6.043 10.765 10.765 0 0 0-.251-8.291l-2.168-4.808c-5.613 3.633-12.147 6.787-19.533 9.425z"/>
+            </svg>
+        `);
+
+        // Asegurarse de que la imagen esté cargada
+        enemigoImg.onload = () => {
+            enemigoImgCargada = true;
+        };
 
         const botonInicio = document.getElementById("inicio");
         const contenedorJuego = document.getElementById("contenedor-juego");
         const puntosDiv = document.getElementById("puntos");
+        const temporizadorDiv = document.getElementById("temporizador");
+        const vidasDiv = document.getElementById("vidas");
+
+        // Función para barajar preguntas (Fisher-Yates)
+        function barajarPreguntas(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         botonInicio.addEventListener("click", () => {
             if (!audioDesbloqueado) {
-                sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(() => {});
-                sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(() => {});
-                sonidoGameOver.play().then(() => sonidoGameOver.pause()).catch(() => {});
+                // Desbloquear todos los audios con la primera interacción
+                sonidoCorrecto.play().then(() => sonidoCorrecto.pause()).catch(error => console.log("Error desbloqueando sonidoCorrecto:", error));
+                sonidoIncorrecto.play().then(() => sonidoIncorrecto.pause()).catch(error => console.log("Error desbloqueando sonidoIncorrecto:", error));
+                sonidoGameOver.play().then(() => sonidoGameOver.pause()).catch(error => console.log("Error desbloqueando sonidoGameOver:", error));
+                musicaTrivia.play().then(() => {
+                    musicaTrivia.pause();
+                    console.log("Música de trivia desbloqueada");
+                }).catch(error => console.log("Error desbloqueando musicaTrivia:", error));
+                musicaMinijuego.play().then(() => {
+                    musicaMinijuego.pause();
+                    console.log("Música de minijuego desbloqueada");
+                }).catch(error => console.log("Error desbloqueando musicaMinijuego:", error));
                 audioDesbloqueado = true;
             }
             botonInicio.style.display = "none";
             contenedorJuego.style.display = "flex";
             puntosDiv.style.opacity = "1";
-            contenedorJuego.classList.add("animar-entrada");
+            temporizadorDiv.style.opacity = "1";
+            vidasDiv.style.opacity = "0";
             puntos = 0;
+            vidasExtras = 0;
+            preguntasUsadas = [];
+            preguntasBarajadas = barajarPreguntas([...preguntas]);
             actualizarPuntos();
-            mostrarPregunta();
+            actualizarVidas();
+            mostrarMejorPuntaje();
+            musicaTrivia.currentTime = 0; // Reiniciar música
+            musicaTrivia.play().then(() => console.log("Reproduciendo música de trivia")).catch(error => console.log("Error reproduciendo musicaTrivia:", error));
+            mostrarPreguntaInicial();
         });
 
-        function mostrarPregunta() {
-            if (preguntasUsadas.length === preguntas.length) {
+        function mostrarPreguntaInicial() {
+            if (preguntasUsadas.length === preguntasBarajadas.length) {
                 preguntasUsadas = [];
+                preguntasBarajadas = barajarPreguntas([...preguntas]);
             }
 
-            const preguntasDisponibles = preguntas.filter(p => !preguntasUsadas.includes(p));
-            
-            let nuevaPregunta;
-            do {
-                nuevaPregunta = preguntasDisponibles[Math.floor(Math.random() * preguntasDisponibles.length)];
-            } while (nuevaPregunta === preguntaActual && preguntasDisponibles.length > 1);
-
-            preguntaActual = nuevaPregunta;
+            preguntaActual = preguntasBarajadas[preguntasUsadas.length];
             preguntasUsadas.push(preguntaActual);
-
-            contenedorJuego.classList.remove("animar-entrada");
-            void contenedorJuego.offsetWidth;
-            contenedorJuego.classList.add("animar-entrada");
 
             document.getElementById("imagen").innerText = preguntaActual.imagen;
             document.getElementById("pregunta").innerText = preguntaActual.pregunta;
@@ -365,6 +513,61 @@
                 opcionesDiv.appendChild(boton);
             });
             document.getElementById("resultado").innerHTML = "";
+            tiempoRestantePregunta = 10;
+            temporizadorDiv.innerText = `Tiempo: ${tiempoRestantePregunta}`;
+            iniciarTemporizador();
+        }
+
+        function actualizarPuntos() {
+            document.getElementById("puntos").innerText = `Puntos: ${puntos}`;
+            if (puntos > 0 && puntos % 100 === 0) {
+                vidasExtras++;
+                actualizarVidas();
+                document.getElementById("resultado").innerHTML = '<span class="recompensa">¡FELICIDADES! +1 VIDA</span>';
+            }
+        }
+
+        function actualizarVidas() {
+            document.getElementById("vidas").innerText = "Vidas: " + "❤️".repeat(vidasExtras);
+            document.getElementById("vidas").style.opacity = vidasExtras > 0 ? "1" : "0";
+        }
+
+        function mostrarPregunta() {
+            if (preguntasUsadas.length === preguntasBarajadas.length) {
+                preguntasUsadas = [];
+                preguntasBarajadas = barajarPreguntas([...preguntas]);
+            }
+
+            preguntaActual = preguntasBarajadas[preguntasUsadas.length];
+            preguntasUsadas.push(preguntaActual);
+
+            document.getElementById("imagen").innerText = preguntaActual.imagen;
+            document.getElementById("pregunta").innerText = preguntaActual.pregunta;
+            const opcionesDiv = document.getElementById("opciones");
+            opcionesDiv.innerHTML = "";
+            preguntaActual.opciones.forEach(opcion => {
+                const boton = document.createElement("button");
+                boton.innerText = opcion;
+                boton.className = "opcion";
+                boton.onclick = () => verificarRespuesta(opcion);
+                opcionesDiv.appendChild(boton);
+            });
+            document.getElementById("resultado").innerHTML = "";
+            tiempoRestantePregunta = 10;
+            temporizadorDiv.innerText = `Tiempo: ${tiempoRestantePregunta}`;
+            clearInterval(intervaloTemporizador);
+            iniciarTemporizador();
+        }
+
+        function iniciarTemporizador() {
+            intervaloTemporizador = setInterval(() => {
+                tiempoRestantePregunta--;
+                temporizadorDiv.innerText = `Tiempo: ${tiempoRestantePregunta}`;
+                if (tiempoRestantePregunta <= 0) {
+                    clearInterval(intervaloTemporizador);
+                    verificarRespuesta("");
+                }
+            }, 1000);
         }
 
         function deshabilitarOpciones() {
@@ -375,29 +578,40 @@
         }
 
         function verificarRespuesta(respuesta) {
-            deshabilitarOpciones(); // Bloquear todas las opciones tras la primera selección
+            clearInterval(intervaloTemporizador);
+            deshabilitarOpciones();
             const resultado = document.getElementById("resultado");
             if (respuesta === preguntaActual.correcta) {
                 resultado.innerHTML = '<span class="correcto">¡CORRECTO!</span>';
                 puntos += 10;
                 actualizarPuntos();
                 sonidoCorrecto.currentTime = 0;
-                sonidoCorrecto.play().catch(error => console.log("Error al reproducir sonido correcto:", error));
+                sonidoCorrecto.play().catch(error => console.log("Error reproduciendo sonidoCorrecto:", error));
                 setTimeout(mostrarPregunta, 2000);
             } else {
                 resultado.innerHTML = `<span class="incorrecto">INCORRECTO<br>RESPUESTA: ${preguntaActual.correcta}</span>`;
                 sonidoIncorrecto.currentTime = 0;
-                sonidoIncorrecto.play().catch(error => console.log("Error al reproducir sonido incorrecto:", error));
+                sonidoIncorrecto.play().catch(error => console.log("Error reproduciendo sonidoIncorrecto:", error));
                 setTimeout(mostrarPantallaInicioMinijuego, 2000);
             }
         }
 
-        function actualizarPuntos() {
-            document.getElementById("puntos").innerText = `Puntos: ${puntos}`;
+        function guardarPuntaje() {
+            const mejorPuntaje = localStorage.getItem("mejorPuntaje") || 0;
+            if (puntos > mejorPuntaje) {
+                localStorage.setItem("mejorPuntaje", puntos);
+            }
+        }
+
+        function mostrarMejorPuntaje() {
+            const mejorPuntaje = localStorage.getItem("mejorPuntaje") || 0;
+            document.getElementById("mejor-puntaje").innerText = `Mejor Puntaje: ${mejorPuntaje}`;
         }
 
         function mostrarPantallaInicioMinijuego() {
             contenedorJuego.style.display = "none";
+            musicaTrivia.pause();
+            console.log("Pausando música de trivia antes del minijuego");
             startGameScreen.style.display = "flex";
             setTimeout(() => {
                 startGameScreen.style.display = "none";
@@ -408,13 +622,15 @@
         function iniciarMinijuego() {
             minijuego.style.display = "block";
             gameOverScreen.style.display = "none";
+            victoryScreen.style.display = "none";
             juegoActivo = true;
             naveX = 180;
             enemigos = [];
             balas = [];
             tiempoRestante = 15;
+            inicioDisparos = false;
 
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 4; i++) {
                 const velocidad = 1.5 + (i % 3) * 0.5;
                 enemigos.push({ x: 50 + i * 70, y: 50 + (i % 3) * 50, direccion: Math.random() < 0.5 ? 1 : -1, velocidad: velocidad });
             }
@@ -423,7 +639,12 @@
             gameCanvas.addEventListener("touchmove", moverToque);
             gameCanvas.addEventListener("touchend", finalizarToque);
             intervaloJuego = setInterval(actualizarJuego, 1000 / 60);
-            setTimeout(finalizarMinijuego, 15000);
+            musicaMinijuego.currentTime = 0;
+            musicaMinijuego.play().then(() => console.log("Reproduciendo música de minijuego")).catch(error => console.log("Error reproduciendo musicaMinijuego:", error));
+
+            setTimeout(() => {
+                inicioDisparos = true;
+            }, 1000);
         }
 
         function iniciarToque(e) {
@@ -438,7 +659,7 @@
             e.preventDefault();
             const nuevoToqueX = e.touches[0].clientX;
             const diferencia = nuevoToqueX - toqueX;
-            naveX += diferencia / 2;
+            naveX += diferencia / 1;
             if (naveX < 0) naveX = 0;
             if (naveX > 360) naveX = 360;
             toqueX = nuevoToqueX;
@@ -457,41 +678,58 @@
             gameMessage.innerText = `TIEMPO: ${Math.ceil(tiempoRestante)}`;
 
             ctx.font = "40px Arial";
-            ctx.shadowColor = "#00d4ff";
+            ctx.shadowColor = vidasExtras > 0 ? "#ffd700" : "#00d4ff";
             ctx.shadowBlur = 2;
             ctx.fillText("🪬", naveX, 570);
             ctx.shadowBlur = 0;
 
+            if (vidasExtras > 0) {
+                ctx.font = "20px Arial";
+                ctx.fillStyle = "#ff0000";
+                ctx.textAlign = "right";
+                ctx.fillText("Vidas: " + "❤️".repeat(vidasExtras), 390, 30);
+            }
+
             enemigos.forEach(enemigo => {
                 enemigo.x += enemigo.velocidad * enemigo.direccion;
                 if (enemigo.x > 360 || enemigo.x < 0) enemigo.direccion *= -1;
-                ctx.font = "40px Arial";
-                ctx.shadowColor = "#ff3333";
-                ctx.shadowBlur = 2;
-                ctx.fillText("🧿", enemigo.x, enemigo.y);
-                ctx.shadowBlur = 0;
+                if (enemigoImgCargada) {
+                    ctx.drawImage(enemigoImg, enemigo.x - 20, enemigo.y - 20, 40, 40);
+                } else {
+                    ctx.font = "40px Arial";
+                    ctx.fillText("👾", enemigo.x, enemigo.y);
+                }
 
-                if (Math.random() < 0.02) {
-                    balas.push({ x: enemigo.x + 20, y: enemigo.y + 20 });
+                if (inicioDisparos && Math.random() < 0.02) {
+                    balas.push({ x: enemigo.x + 20, y: enemigo.y + 40 });
                 }
             });
 
             balas.forEach((bala, index) => {
-                bala.y += 7;
+                bala.y += 4;
                 ctx.beginPath();
-                ctx.arc(bala.x + 2.5, bala.y + 5, 5, 0, Math.PI * 2);
+                ctx.arc(bala.x + 1.5, bala.y + 3, 3, 0, Math.PI * 2);
                 ctx.fillStyle = "#ff00ff";
                 ctx.fill();
                 if (bala.y > 600) balas.splice(index, 1);
                 if (bala.x > naveX && bala.x < naveX + 40 && bala.y > 530 && bala.y < 570) {
-                    perderMinijuego();
+                    if (vidasExtras > 0) {
+                        vidasExtras--;
+                        actualizarVidas();
+                        balas.splice(index, 1);
+                    } else {
+                        perderMinijuego();
+                    }
                 }
             });
 
             tiempoRestante -= 1 / 60;
+            if (tiempoRestante <= 0) {
+                mostrarPantallaVictoria();
+            }
         }
 
-        function finalizarMinijuego() {
+        function mostrarPantallaVictoria() {
             if (!juegoActivo) return;
             juegoActivo = false;
             clearInterval(intervaloJuego);
@@ -499,8 +737,16 @@
             gameCanvas.removeEventListener("touchmove", moverToque);
             gameCanvas.removeEventListener("touchend", finalizarToque);
             minijuego.style.display = "none";
-            contenedorJuego.style.display = "flex";
-            mostrarPregunta();
+            musicaMinijuego.pause();
+            console.log("Pausando música de minijuego tras victoria");
+            musicaTrivia.currentTime = 0;
+            musicaTrivia.play().then(() => console.log("Reproduciendo música de trivia tras victoria")).catch(error => console.log("Error reproduciendo musicaTrivia tras victoria:", error));
+            victoryScreen.style.display = "flex";
+            setTimeout(() => {
+                victoryScreen.style.display = "none";
+                contenedorJuego.style.display = "flex";
+                mostrarPregunta();
+            }, 2000);
         }
 
         function perderMinijuego() {
@@ -510,15 +756,21 @@
             gameCanvas.removeEventListener("touchmove", moverToque);
             gameCanvas.removeEventListener("touchend", finalizarToque);
             minijuego.style.display = "none";
+            musicaMinijuego.pause();
+            console.log("Pausando música de minijuego tras derrota");
             gameOverScreen.style.display = "flex";
             sonidoGameOver.currentTime = 0;
-            sonidoGameOver.play().catch(error => console.log("Error al reproducir sonido Game Over:", error));
+            sonidoGameOver.play().catch(error => console.log("Error reproduciendo sonidoGameOver:", error));
+            guardarPuntaje();
+            mostrarMejorPuntaje();
             setTimeout(() => {
                 gameOverScreen.style.display = "none";
                 botonInicio.style.display = "block";
                 preguntasUsadas = [];
                 puntos = 0;
+                vidasExtras = 0;
                 actualizarPuntos();
+                actualizarVidas();
             }, 2000);
         }
     </script>
